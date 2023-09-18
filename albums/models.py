@@ -9,6 +9,7 @@ class Album(models.Model):
     creation_datetime = models.DateTimeField(default=timezone.now)
     release_datetime = models.DateTimeField()
     cost = models.DecimalField(max_digits=10, decimal_places=2)
+    is_approved = models.BooleanField(default=False)
 
     def __str__(self):
         return self.name
