@@ -1,6 +1,7 @@
 from django.contrib import admin
 from .models import Artist
 from albums.models import Album  
+
 class AlbumInline(admin.TabularInline): 
     model = Album
     extra = 1  # Number of empty album forms to display

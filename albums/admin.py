@@ -7,6 +7,6 @@ class AlbumAdmin(admin.ModelAdmin):
     #defining the form inside the class to apply all the validations on admin page
     form = AlbumForm
     # Define fields that should be read-only in the admin
-    readonly_fields = ('creation_datetime',)
+    readonly_fields = ('created','modified')
     
 admin.site.register(Album, AlbumAdmin)

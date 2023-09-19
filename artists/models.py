@@ -1,6 +1,7 @@
 from django.db import models
+from model_utils.models import TimeStampedModel
 
-class Artist(models.Model):
+class Artist(TimeStampedModel):
     stage_name = models.CharField(max_length=100, unique=True)
     social_link = models.URLField(blank=True)
     

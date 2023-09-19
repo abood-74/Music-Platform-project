@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Create Album</title>
+    <!-- Include Bootstrap CSS -->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+</head>
+<body>
+    <div class="container mt-5">
+        <div class="card">
+            <div class="card-header bg-primary text-white text-center">
+                <h2>Create Album</h2>
+            </div>
+            <div class="card-body">
+                <form method="post">
+                    {% csrf_token %}
+                    
+                    {% if form.errors %}
+                    <div class="alert alert-danger">
+                        <strong>Error:</strong> Please correct the following errors.
+                        <ul>
+                            {% for field, errors in form.errors.items %}
+                                {% for error in errors %}
+                                    <li>{{ field }}: {{ error }}</li>
+                                {% endfor %}
+                            {% endfor %}
+                        </ul>
+                    </div>
+                    {% endif %}
+                    
+                    <div class="form-group">
+                        <label for="{{ form.artist.id_for_label }}">Artist</label>
+                        {{ form.artist }}
+                    </div>
+                    <div class="form-group">
+                        <label for="{{ form.name.id_for_label }}">Album Name</label>
+                        {{ form.name }}
+                    </div>
+                    <div class="form-group">
+                        <label for="{{ form.release_datetime.id_for_label }}">Release Date and Time</label>
+                        <div class="input-group">
+                            {{ form.release_datetime }}
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="{{ form.cost.id_for_label }}">Cost</label>
+                        {{ form.cost }}
+                    </div>
+                    <div class="form-group">
+                        <label for="{{ form.is_approved.id_for_label }}">Is Approved</label>
+                        {{ form.is_approved }}
+                    </div>
+                    <button type="submit" class="btn btn-primary btn-create">Create</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Include Bootstrap JS and jQuery (optional) for Bootstrap features -->
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.3/dist/umd/popper.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+</body>
+</html>
