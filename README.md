@@ -1,6 +1,6 @@
 ### Task 3
 
-1- Instead of having an explicit created_at field in the Album model, inherit from TimeStampedModel.
+#### 1- Instead of having an explicit created_at field in the Album model, inherit from TimeStampedModel.
 
 
 
@@ -38,17 +38,17 @@ class Artist(TimeStampedModel):
         
     
 ```
-2- Create a form that allows a user to create an artist (it should be available at http://localhost:8000/artists/create).
+#### 2- Create a form that allows a user to create an artist (it should be available at http://localhost:8000/artists/create).
 ![ALt](https://github.com/abood-74/Music-Platform-project/blob/task-3/readme_elements/Screenshot%20from%202023-09-19%2005-23-10.png)
 
-3- Create a form that allows a user to create an album (it should be available at https://localhost:8000/albums/create).
+#### 3- Create a form that allows a user to create an album (it should be available at https://localhost:8000/albums/create).
 ![ALt](https://github.com/abood-74/Music-Platform-project/blob/task-3/readme_elements/Screenshot%20from%202023-09-19%2005-23-27.png)
 
-4- Create a template view that lists all the albums grouped by each artist (it should be available at
+#### 4- Create a template view that lists all the albums grouped by each artist (it should be available at
 https://localhost:8000/artists/)
 ![ALt](https://github.com/abood-74/Music-Platform-project/blob/task-3/readme_elements/Screenshot%20from%202023-09-19%2005-22-54.png)
 
-5- Fetch the queryset above in an optimized manner (hint: how can you fetch both albums and artists in one
+#### 5- Fetch the queryset above in an optimized manner (hint: how can you fetch both albums and artists in one
 database seek?)
 ```python
 def artist_with_albums(request):
