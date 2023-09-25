@@ -1,19 +1,32 @@
 from django.shortcuts import render, redirect
 from .forms import ArtistForm
 from .models import Artist
+from django.views import View
+from django.contrib.auth.mixins import LoginRequiredMixin
 
-def create_artist(request):
-    if request.method == 'POST':
+
+
+class CreateArtistView(LoginRequiredMixin, View):
+    template_name = 'artist_create.html'
+    login_url = 'signin'
+    
+
+    def get(self, request):
+        form = ArtistForm()
+        return render(request, self.template_name, {'form': form})
+
+    def post(self, request):
         form = ArtistForm(request.POST)
         if form.is_valid():
             form.save()
-            return redirect('create_artist')  
-    else:
-        form = ArtistForm()
+            return redirect('create_artist')
+        return render(request, self.template_name, {'form': form})
 
-    return render(request, 'artist_create.html', {'form': form})
 
-def artist_with_albums(request):
-    # Retrieve all artists along with their albums
-    artists_with_albums = Artist.objects.prefetch_related('albums')
-    return render(request, 'artist_with_albums.html', {'artists_with_albums': artists_with_albums})
+class ArtistWithAlbumsView(View):
+    template_name = 'artist_with_albums.html'
+
+    def get(self, request):
+        # Retrieve all artists along with their albums
+        artists_with_albums = Artist.objects.prefetch_related('albums')
+        return render(request, self.template_name, {'artists_with_albums': artists_with_albums})

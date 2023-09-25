@@ -1,13 +1,18 @@
 from django.shortcuts import render, redirect
-from .forms import AlbumForm
+from django.views import View
+from .forms import AlbumForm  
 
-def create_album(request):
-    if request.method == 'POST':
+class CreateAlbumView(View):
+    template_name = 'album_create.html'
+
+
+    def get(self, request):
+        form = AlbumForm()
+        return render(request, self.template_name, {'form': form})
+
+    def post(self, request):
         form = AlbumForm(request.POST)
         if form.is_valid():
             form.save()
-            return redirect('create_album') 
-    else:
-        form = AlbumForm()
-
-    return render(request, 'album_create.html', {'form': form})
+            return redirect('create_album')
+        return render(request, self.template_name, {'form': form})
