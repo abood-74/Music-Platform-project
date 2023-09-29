@@ -33,7 +33,7 @@ class Song(models.Model):
     audio_file = models.FileField(upload_to='songs/audio/', blank  = True)
 
     def save(self, *args, **kwargs):
-        # make the default name the song name its album name
+        # make the default song name its album name
         if not self.name:
             self.name = self.album.name
         super().save(*args, **kwargs)
