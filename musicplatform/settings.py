@@ -43,6 +43,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'authentication',
     'imagekit',
+    'rest_framework',
     #local
     'artists',
     'albums',
