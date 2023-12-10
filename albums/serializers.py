@@ -12,6 +12,8 @@ class SongSerializer(serializers.ModelSerializer):
 
 
 class AlbumSerializer (serializers.ModelSerializer):
+    name = serializers.CharField()
+    cost = serializers.DecimalField(max_digits= 12, decimal_places= 2 )
     is_approved = serializers.BooleanField(
         required=False, help_text="Approve the album if its name is not explicit")
     songs = SongSerializer(many=True, required=False)
