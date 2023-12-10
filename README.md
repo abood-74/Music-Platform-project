@@ -1,130 +1,71 @@
 # Music-Platform-project
 
-## Task 4
+## Task 5
 
-#### 1- Change all the current views you have to class based views, from now on we'll only be creating class based views
+#### 1- Feel free to remove any non-API views that we created from before and Create a class-based view at the path /artists/ that returns a list of artists in JSON format for GET requests, the artist data should include the following fields.
+{
+"id": ...
+"stage_name": ...
+"social_link": ...
+}
 
-#####  Artists
+#### 2-The same view above should accept POST requests and accept all the fields on the artist model (excluding the id)
+- Include proper validation for each field as listed on the artist model:
+ - this field is required
+- this field value already exists (for unique fields)
+- If the request passes the validation process, the given data should be used to create and save an artist instance
+#####  code - artists/views.py
 ```python
+from rest_framework.generics import ListAPIView,ListCreateAPIView
+from .models import Artist
+from .serializers import ArtistSerializer
 
 
-class CreateArtistView(LoginRequiredMixin, View):
-    template_name = 'artist_create.html'
-    login_url = 'signin'
-    
-
-    def get(self, request):
-        form = ArtistForm()
-        return render(request, self.template_name, {'form': form})
-
-    def post(self, request):
-        form = ArtistForm(request.POST)
-        if form.is_valid():
-            form.save()
-            return redirect('create_artist')
-        return render(request, self.template_name, {'form': form})
 
 
-class ArtistWithAlbumsView(View):
+class CreateArtistView(ListCreateAPIView):
+    queryset = Artist.objects.all()
+    serializer_class = ArtistSerializer
+
+
+
+class ArtistWithAlbumsView(ListAPIView):
     template_name = 'artist_with_albums.html'
-
-    def get(self, request):
-        # Retrieve all artists along with their albums
-        artists_with_albums = Artist.objects.prefetch_related('albums')
-        return render(request, self.template_name, {'artists_with_albums': artists_with_albums})
+    queryset  = Artist.objects.prefetch_related('albums')
+    serializer_class = ArtistSerializer
 ```
-#####  Albums
+#####  code - artists/serializers.py
 ```python
+from rest_framework import serializers
+from .models import Artist
+from django.core.exceptions import ValidationError
+from albums.serializers import AlbumSerializer
+from rest_framework.validators import UniqueValidator
 
-from django.shortcuts import render, redirect
-from django.views import View
-from .forms import AlbumForm  
-
-class CreateAlbumView(View):
-    template_name = 'album_create.html'
-
-
-    def get(self, request):
-        form = AlbumForm()
-        return render(request, self.template_name, {'form': form})
-
-    def post(self, request):
-        form = AlbumForm(request.POST)
-        if form.is_valid():
-            form.save()
-            return redirect('create_album')
-        return render(request, self.template_name, {'form': form})
-```
-
-#### 2-Add a sign in page using which a user can provide their username and password to get authenticated
-
-#####  Registeration page
-![Alt](https://github.com/abood-74/Music-Platform-project/blob/task-4/readme_elements/Screenshot%20from%202023-09-29%2006-12-48.png)
-#####  Login page
-![Alt](https://github.com/abood-74/Music-Platform-project/blob/task-4/readme_elements/Screenshot%20from%202023-09-29%2006-12-25.png)
+def checkBlank(str):
+    if str == '':
+        raise ValidationError('null not allowed')
 
 
-##### 3- We received a requirement that each album must have at least one song. In the albums app, create a song model that consists of:
-* A name (if no name is provided, the song's name defaults to the album name)
-```python
-class Song(models.Model):
-    name = models.CharField(max_length=255, blank=True)
-# ..........
-
-def save(self, *args, **kwargs):
-        # make the default song name its album name
-        if not self.name:
-            self.name = self.album.name
-        super().save(*args, **kwargs)
-```
-* An image (required)
-
-```python
-
-class Song(models.Model):
-   image = models.ImageField(upload_to='songs/images/')
-# ..........
-
-```
-* An image thumbnail with JPEG format (hint: use ImageKit )
- ```python
-class Song(models.Model):
-   image_thumbnail = ImageSpecField(source='image',
-                                    processors=[ResizeToFit(100, 100)],
-                                    format='JPEG',
-                                    options={'quality': 60})
-# ..........
-
-```
-* An audio file with .mp3 or .wav extensions (required)
-
- ```python
-class Song(models.Model):
-   audio_file = models.FileField(upload_to='songs/audio/', blank  = True)
-# ..........
-
-```
-##### 4- Setup your server to serve the uploaded media files, for example, I should be able to view a song's image by accessing its url: http://127.0.0.1:8000/YOUR_MEDIA_PATH/image.jpg
-
-* settings
-```python
-    MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
-    MEDIA_URL = 'media/'
-```
-
-* urls
-```python
-urlpatterns = [
-    path('admin/', admin.site.urls),
-    path('artists', include('artists.urls')),
-    path('albums', include('albums.urls')),
-    path('albums', include('albums.urls')),
-    path('auth', include('authentication.urls'))
+class ArtistSerializer(serializers.ModelSerializer):
+    stage_name = serializers.CharField(
+        max_length=100,
+        validators=[checkBlank ,UniqueValidator(queryset=Artist.objects.all())]
+    )
+    social_link = serializers.URLField(max_length=250, validators=[checkBlank])
     
-    
-] + static(settings.MEDIA_URL ,document_root = settings.MEDIA_ROOT )
+    albums = AlbumSerializer(many = True , required = False)
 
+    class Meta:
+        model = Artist
+        fields = '__all__'
 ```
+
+
+##### image
+![Alt](https://github.com/abood-74/Music-Platform-project/blob/task-5/readme_elements/Screenshot%20from%202023-12-10%2003-19-55.png)
+
+
 
 
 
