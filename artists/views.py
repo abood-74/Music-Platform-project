@@ -12,6 +12,5 @@ class CreateArtistView(ListCreateAPIView):
 
 
 class ArtistWithAlbumsView(ListAPIView):
-    template_name = 'artist_with_albums.html'
     queryset  = Artist.objects.prefetch_related('albums')
     serializer_class = ArtistSerializer

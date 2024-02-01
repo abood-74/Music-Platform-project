@@ -1,11 +1,11 @@
 # authentication/urls.py
 from django.urls import path
-from django.contrib.auth.views import LoginView, LogoutView
-from .views import CustomRegistrationView
+from knox import views as knox_views
+from .views import *
 
 urlpatterns = [
-    path('/signin/', LoginView.as_view(template_name='signin.html', next_page = 'artist_with_albums'), name='signin'),
-    path('/signout/', LogoutView.as_view(template_name = 'signout.html'), name='signout'),
-    path('/register/', CustomRegistrationView.as_view(), name='register'),
+    path('/login/', LoginAPI.as_view(), name='signin'),
+     path('/logout/', knox_views.LogoutAllView.as_view(), name='knox_logout'),
+    path('/register/', RegisterAPI.as_view(), name='register'),
     
 ]

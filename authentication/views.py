@@ -1,20 +1,34 @@
-from django.contrib.auth import login
-from django.views import View
-from django.shortcuts import render, redirect
-from django.contrib.auth.forms import UserCreationForm
-
-class CustomRegistrationView(View):
-    def get(self, request):
-        form = UserCreationForm()
-        return render(request, 'register.html', {'form': form})
-
-    def post(self, request):
-        form = UserCreationForm(request.POST)
-        if form.is_valid():
-            user = form.save()
-            login(request, user)
-            return redirect('artist_with_albums')  # Redirect to your desired view after registration
-        else:
-            return render(request, 'register.html', {'form': form})
+from rest_framework.views import  APIView
+from rest_framework.response import Response
+from knox.models import AuthToken
+from .serializers import *
+from users.serializers import *
+from knox.auth import TokenAuthentication
+from rest_framework.status import *
 
 
+class RegisterAPI(APIView):
+    
+    def post(self, request, *args, **kwargs):
+        serializer = RegisterSerializer(data=request.data)
+        if serializer.is_valid():
+            user = serializer.save()
+        
+            return Response(data={
+                "user": UserSerializer(user).data,
+                "token": AuthToken.objects.create(user)[1]
+            }, status=HTTP_201_CREATED)
+
+        return Response(serializer.errors, status=HTTP_400_BAD_REQUEST)
+    
+
+class LoginAPI(APIView):
+    def post(self, request, *args, **kwargs):
+        serializer = LoginSerializer(data=request.data)
+        if serializer.is_valid():
+            user = serializer.validated_data
+            return Response(data={
+                "user": UserSerializer(user).data,
+                "token": AuthToken.objects.create(user)[1]
+            }, status=HTTP_200_OK)
+        return Response(serializer.errors, status=HTTP_400_BAD_REQUEST)
