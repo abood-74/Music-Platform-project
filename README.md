@@ -1,131 +1,182 @@
 # Music-Platform-project
 
-## Task 4
+## Task 6
 
-#### 1- Change all the current views you have to class based views, from now on we'll only be creating class based views
-
-#####  Artists
+#### 1- In the users app, extend Django's user model by inheriting from AbstractUser to include an optional bio CharField with a max length of 256 characters
+##### *users.models.py*
 ```python
+from django.db import models
+from django.contrib.auth.models import AbstractUser
 
+class User(AbstractUser):
+    bio = models.CharField(max_length=256 , blank=True)
 
-class CreateArtistView(LoginRequiredMixin, View):
-    template_name = 'artist_create.html'
-    login_url = 'signin'
+    def __str__(self): 
+        return self.username
+```
+
+#### 2- In the authentication app, support a POST authentication/register/ endpoint that creates users.
+ ##### *authentication.views.py*
+```python
+class RegisterAPI(APIView):
     
+    def post(self, request, *args, **kwargs):
+        serializer = RegisterSerializer(data=request.data)
+        if serializer.is_valid():
+            user = serializer.save()
+        
+            return Response(data={
+                "user": UserSerializer(user).data,
+                "token": AuthToken.objects.create(user)[1]
+            }, status=HTTP_201_CREATED)
 
-    def get(self, request):
-        form = ArtistForm()
-        return render(request, self.template_name, {'form': form})
+        return Response(serializer.errors, status=HTTP_400_BAD_REQUEST)
 
-    def post(self, request):
-        form = ArtistForm(request.POST)
-        if form.is_valid():
-            form.save()
-            return redirect('create_artist')
-        return render(request, self.template_name, {'form': form})
-
-
-class ArtistWithAlbumsView(View):
-    template_name = 'artist_with_albums.html'
-
-    def get(self, request):
-        # Retrieve all artists along with their albums
-        artists_with_albums = Artist.objects.prefetch_related('albums')
-        return render(request, self.template_name, {'artists_with_albums': artists_with_albums})
 ```
-#####  Albums
+![Alt](https://github.com/abood-74/Music-Platform-project/blob/Task-6/readme_elements/Screenshot%20from%202024-02-02%2008-16-34.png)
+
+* This endpoint must accept the following fields formatted in JSON username, email, password1, password2 (confirmation of password1 )
+  ##### *authentication.serializers.py*
 ```python
+class RegisterSerializer(serializers.ModelSerializer):
+    email = serializers.EmailField(required=True)
+    password = serializers.CharField(required=True)
+    password1 = serializers.CharField(required=True)
 
-from django.shortcuts import render, redirect
-from django.views import View
-from .forms import AlbumForm  
-
-class CreateAlbumView(View):
-    template_name = 'album_create.html'
-
-
-    def get(self, request):
-        form = AlbumForm()
-        return render(request, self.template_name, {'form': form})
-
-    def post(self, request):
-        form = AlbumForm(request.POST)
-        if form.is_valid():
-            form.save()
-            return redirect('create_album')
-        return render(request, self.template_name, {'form': form})
-```
-
-#### 2-Add a sign in page using which a user can provide their username and password to get authenticated
-
-#####  Registeration page
-![Alt](https://github.com/abood-74/Music-Platform-project/blob/task-4/readme_elements/Screenshot%20from%202023-09-29%2006-12-48.png)
-#####  Login page
-![Alt](https://github.com/abood-74/Music-Platform-project/blob/task-4/readme_elements/Screenshot%20from%202023-09-29%2006-12-25.png)
-
-
-##### 3- We received a requirement that each album must have at least one song. In the albums app, create a song model that consists of:
-* A name (if no name is provided, the song's name defaults to the album name)
-```python
-class Song(models.Model):
-    name = models.CharField(max_length=255, blank=True)
-# ..........
-
-def save(self, *args, **kwargs):
-        # make the default song name its album name
-        if not self.name:
-            self.name = self.album.name
-        super().save(*args, **kwargs)
-```
-* An image (required)
-
-```python
-
-class Song(models.Model):
-   image = models.ImageField(upload_to='songs/images/')
-# ..........
+    class Meta:
+        model = User
+        fields = ['id', 'username', 'bio', 'email', 'password', 'password1']
+        extra_kwargs = {'password': {'write_only': True}}
+#.......
 
 ```
-* An image thumbnail with JPEG format (hint: use ImageKit )
+* Perform proper validation  if password1 doesn't match password2.
+##### *authentication.serializers.py*
  ```python
-class Song(models.Model):
-   image_thumbnail = ImageSpecField(source='image',
-                                    processors=[ResizeToFit(100, 100)],
-                                    format='JPEG',
-                                    options={'quality': 60})
-# ..........
+def create(self, validated_data):
+        if validated_data['password'] == validated_data['password1']:
+            user = User.objects.create_user(
+                username=validated_data['username'],
+                email=validated_data['email'],
+                password=validated_data['password']
+            )
+            return user
+        raise serializers.ValidationError("passwords doesn't match")
 
 ```
-* An audio file with .mp3 or .wav extensions (required)
-
- ```python
-class Song(models.Model):
-   audio_file = models.FileField(upload_to='songs/audio/', blank  = True)
-# ..........
-
-```
-##### 4- Setup your server to serve the uploaded media files, for example, I should be able to view a song's image by accessing its url: http://127.0.0.1:8000/YOUR_MEDIA_PATH/image.jpg
-
-* settings
+#### 3- Create a POST authentication/login/ that logs in users using their username and password and returns a KnoxToken and the user's data in a nested object.
+##### *authentication.serializers.py*
 ```python
-    MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
-    MEDIA_URL = 'media/'
-```
+class LoginSerializer(serializers.Serializer):
+    username = serializers.CharField()
+    password = serializers.CharField()
 
-* urls
+    def validate(self, data):
+        user = authenticate(**data)
+        if user and user.is_active:
+            return user
+        raise serializers.ValidationError("Incorrect Credentials")
+```
+##### *authentication.views.py*
 ```python
+class LoginAPI(APIView):
+    def post(self, request, *args, **kwargs):
+        serializer = LoginSerializer(data=request.data)
+        if serializer.is_valid():
+            user = serializer.validated_data
+            return Response(data={
+                "user": UserSerializer(user).data,
+                "token": AuthToken.objects.create(user)[1]
+            }, status=HTTP_200_OK)
+        return Response(serializer.errors, status=HTTP_400_BAD_REQUEST)
+```
+![Alt](https://github.com/abood-74/Music-Platform-project/blob/Task-6/readme_elements/Screenshot%20from%202024-02-02%2008-16-23.png)
+
+#### 4- Create a POST authentication/logout/ endpoint that logs the user out from the app by invalidating the knox token
+##### *authentication.urls.py*
+```python
+from django.urls import path
+from knox import views as knox_views
+from .views import *
+
 urlpatterns = [
-    path('admin/', admin.site.urls),
-    path('artists', include('artists.urls')),
-    path('albums', include('albums.urls')),
-    path('albums', include('albums.urls')),
-    path('auth', include('authentication.urls'))
+    path('/login/', LoginAPI.as_view(), name='signin'),
+     path('/logout/', knox_views.LogoutAllView.as_view(), name='knox_logout'),
+    path('/register/', RegisterAPI.as_view(), name='register'),
     
-    
-] + static(settings.MEDIA_URL ,document_root = settings.MEDIA_ROOT )
+]
 
 ```
 
+#### 5- In the users app, create a user detail endpoint /users/<pk> that supports the following requests:
+* GET returns the user data matching the given pk , namely, it should return the user's id , username , email ,and bio .
+###### *users.views.py*
+```python
+class UserDetailView(APIView):
+    def get_object(self, pk):
+        try:
+            return User.objects.get(pk=pk)
+        except User.DoesNotExist:
+            return None
+
+    def get(self, request, pk, format=None):
+        user = self.get_object(pk)
+        if user is not None:
+            serializer = UserSerializer(user)
+            return Response(serializer.data)
+        return Response(status=status.HTTP_404_NOT_FOUND)
+
+#.....
+
+```
+* PUT This is exactly the same as when creating a user except that an ID of an existing user is provided in the URL, and that the request will overwrite the user's data with that given ID.
+  ###### *users.views.py*
+
+```python
+class UserDetailView(APIView):
+    def get_object(self, pk):
+        try:
+            return User.objects.get(pk=pk)
+        except User.DoesNotExist:
+            return None
+
+    def put(self, request, pk, format=None):
+        user = self.get_object(pk)
+        if user is not None and request.user == user:
+            serializer = UserSerializer(user, data=request.data)
+            if serializer.is_valid():
+                serializer.save()
+                return Response(serializer.data)
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        return Response({'error': 'Permission denied'}, status=status.HTTP_403_FORBIDDEN)
+
+#.....
+```
+* PATCH This is exactly the same as when updating a user except none of the fields are required, and that only fields given a value will be updated. (hint: see partial_update in serializers)
+  ###### *users.views.py*
+
+```python
+class UserDetailView(APIView):
+    def get_object(self, pk):
+        try:
+            return User.objects.get(pk=pk)
+        except User.DoesNotExist:
+            return None
+
+    def patch(self, request, pk, format=None):
+        user = self.get_object(pk)
+        if user is not None and request.user == user:
+            serializer = UserSerializer(user, data=request.data, partial=True)
+            if serializer.is_valid():
+                serializer.save()
+                return Response(serializer.data)
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        return Response({'error': 'Permission denied'}, status=status.HTTP_403_FORBIDDEN)
+
+
+#.....
+```
+![Alt](https://github.com/abood-74/Music-Platform-project/blob/Task-6/readme_elements/Screenshot%20from%202024-02-02%2008-16-48.png)
 
 
 
