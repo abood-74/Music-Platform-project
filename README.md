@@ -1,6 +1,6 @@
 # Music-Platform-project
 
-## Task 6
+## Task 6  Django Extensions, Knox Token Authentication
 
 #### 1- In the users app, extend Django's user model by inheriting from AbstractUser to include an optional bio CharField with a max length of 256 characters
 ##### *users.models.py*
