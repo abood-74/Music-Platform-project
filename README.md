@@ -1,6 +1,6 @@
 
 
-### Task 2
+### Task 2 Django Admin and Managers
 
 1- Add a boolean field to the album model that will help us represent whether an album is approved by an admin or not
 ```python
