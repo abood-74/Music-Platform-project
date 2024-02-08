@@ -1,6 +1,6 @@
 # Music-Platform-project
 
-## Task 4
+## Task 4 Class-based Views, User class,Authentication
 
 #### 1- Change all the current views you have to class based views, from now on we'll only be creating class based views
 
