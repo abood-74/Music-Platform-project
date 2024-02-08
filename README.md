@@ -1,4 +1,4 @@
-## Task 1
+## Task 1 Project basics, models, and queries
 
 1-In the "artists" app, i created an Artist model with the following fields::
 
