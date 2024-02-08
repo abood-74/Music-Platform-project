@@ -1,182 +1,106 @@
 # Music-Platform-project
 
-## Task 6
+## Task 7 pytest
 
-#### 1- In the users app, extend Django's user model by inheriting from AbstractUser to include an optional bio CharField with a max length of 256 characters
-##### *users.models.py*
+
+
+#### 1- Create a global fixture auth_client that returns a function, if that function is passed a user instance, it'll return aninstance of DRF's APIClient authenticated by that user instance, otherwise, it'll return an instance of APIClient authenticated by an arbitrary user instance. 
+##### *conftest.py*
 ```python
-from django.db import models
-from django.contrib.auth.models import AbstractUser
+@pytest.fixture
+@pytest.mark.django_db
+def auth_client(user = None):
+    client = APIClient()
+    if user:
+        client.force_authenticate(user = user)
+    else:
+        random_user = User.objects.create_user(username = 'random_user', email = '' , password = 'random_password')
+        client.force_authenticate(user = random_user)
 
-class User(AbstractUser):
-    bio = models.CharField(max_length=256 , blank=True)
-
-    def __str__(self): 
-        return self.username
+    return client
 ```
 
-#### 2- In the authentication app, support a POST authentication/register/ endpoint that creates users.
- ##### *authentication.views.py*
+#### 2- For each endpoint, test the following: 
+* If the view has permission classes, test making requests that will obey and disobey the permissions, For example,if a view has IsAuthenticatedOrReadOnly permission class, test that making a write and non authenticated request will return 403 Forbidden status code
+* If the view is expecting a certain set of required fields, test that making a request with one or more missing fields will return 400 status code and a proper error message.
+ ##### *albums.tests.test_endpoints.py*
 ```python
-class RegisterAPI(APIView):
+
+def test_get_albums_with_authnticated_user(auth_client):
+    response = auth_client.get(reverse('create_album'))
+    assert response.status_code == 200
+
+def test_get_albums_without_authnticated_user():
+    client = APIClient()
+    response = client.get(reverse('create_album'))
+    assert response.status_code == 401
+    assert response.json() == {'detail': 'Authentication credentials were not provided.'}
     
-    def post(self, request, *args, **kwargs):
-        serializer = RegisterSerializer(data=request.data)
-        if serializer.is_valid():
-            user = serializer.save()
-        
-            return Response(data={
-                "user": UserSerializer(user).data,
-                "token": AuthToken.objects.create(user)[1]
-            }, status=HTTP_201_CREATED)
-
-        return Response(serializer.errors, status=HTTP_400_BAD_REQUEST)
-
-```
-![Alt](https://github.com/abood-74/Music-Platform-project/blob/Task-6/readme_elements/Screenshot%20from%202024-02-02%2008-16-34.png)
-
-* This endpoint must accept the following fields formatted in JSON username, email, password1, password2 (confirmation of password1 )
-  ##### *authentication.serializers.py*
-```python
-class RegisterSerializer(serializers.ModelSerializer):
-    email = serializers.EmailField(required=True)
-    password = serializers.CharField(required=True)
-    password1 = serializers.CharField(required=True)
-
-    class Meta:
-        model = User
-        fields = ['id', 'username', 'bio', 'email', 'password', 'password1']
-        extra_kwargs = {'password': {'write_only': True}}
-#.......
-
-```
-* Perform proper validation  if password1 doesn't match password2.
-##### *authentication.serializers.py*
- ```python
-def create(self, validated_data):
-        if validated_data['password'] == validated_data['password1']:
-            user = User.objects.create_user(
-                username=validated_data['username'],
-                email=validated_data['email'],
-                password=validated_data['password']
-            )
-            return user
-        raise serializers.ValidationError("passwords doesn't match")
-
-```
-#### 3- Create a POST authentication/login/ that logs in users using their username and password and returns a KnoxToken and the user's data in a nested object.
-##### *authentication.serializers.py*
-```python
-class LoginSerializer(serializers.Serializer):
-    username = serializers.CharField()
-    password = serializers.CharField()
-
-    def validate(self, data):
-        user = authenticate(**data)
-        if user and user.is_active:
-            return user
-        raise serializers.ValidationError("Incorrect Credentials")
-```
-##### *authentication.views.py*
-```python
-class LoginAPI(APIView):
-    def post(self, request, *args, **kwargs):
-        serializer = LoginSerializer(data=request.data)
-        if serializer.is_valid():
-            user = serializer.validated_data
-            return Response(data={
-                "user": UserSerializer(user).data,
-                "token": AuthToken.objects.create(user)[1]
-            }, status=HTTP_200_OK)
-        return Response(serializer.errors, status=HTTP_400_BAD_REQUEST)
-```
-![Alt](https://github.com/abood-74/Music-Platform-project/blob/Task-6/readme_elements/Screenshot%20from%202024-02-02%2008-16-23.png)
-
-#### 4- Create a POST authentication/logout/ endpoint that logs the user out from the app by invalidating the knox token
-##### *authentication.urls.py*
-```python
-from django.urls import path
-from knox import views as knox_views
-from .views import *
-
-urlpatterns = [
-    path('/login/', LoginAPI.as_view(), name='signin'),
-     path('/logout/', knox_views.LogoutAllView.as_view(), name='knox_logout'),
-    path('/register/', RegisterAPI.as_view(), name='register'),
     
-]
+def test_create_album_with_authnticated_user(auth_client):
+    artist = Artist.objects.create(stage_name = 'random_artist')
+    data = {
+    'name': 'random_album',
+    'artist': artist.id,
+    'cost': '1000.00',
+    'release_datetime': '2025-02-13',  
+}
+    response = auth_client.post(reverse('create_album'), data = data)
+    assert response.status_code == 201
 
+def test_create_album_without_authnticated_user():
+    client = APIClient()
+    artist = Artist.objects.create(stage_name = 'random_artist')
+    data = {
+    'name': 'random_album',
+    'artist': artist.id,
+    'cost': '1000.00',
+    'release_datetime': '2025-02-13',  
+}
+    response = client.post(reverse('create_album'), data = data)
+    assert response.status_code == 401
+    assert response.json() == {'detail': 'Authentication credentials were not provided.'}    
+    
+    
+def test_create_album_without_name(auth_client):
+    artist = Artist.objects.create(stage_name = 'random_artist')
+    data = {
+    'artist': artist.id,
+    'cost': '1000.00',
+    'release_datetime': '2025-02-13',  
+}
+    response = auth_client.post(reverse('create_album'), data = data)
+    assert response.status_code == 400
+    assert response.json() == {'name': ['This field is required.']}
+    
+
+def test_create_album_without_artist(auth_client):
+    data = {
+    'name': 'random_album',
+    'cost': '1000.00',
+    'release_datetime': '2025-02-13',  
+}
+    response = auth_client.post(reverse('create_album'), data = data)
+    assert response.status_code == 400
+    assert response.json() == {'artist': ['This field is required.']}
+    
+    
+def test_create_album_without_release_datetime(auth_client):
+    artist = Artist.objects.create(stage_name = 'random_artist')
+    data = {
+    'name': 'random_album',
+    'artist': artist.id,
+    'cost': '1000.00',
+}
+    response = auth_client.post(reverse('create_album'), data = data)
+    assert response.status_code == 400
+    assert response.json() == {'release_datetime': ['This field is required.']} 
 ```
 
-#### 5- In the users app, create a user detail endpoint /users/<pk> that supports the following requests:
-* GET returns the user data matching the given pk , namely, it should return the user's id , username , email ,and bio .
-###### *users.views.py*
-```python
-class UserDetailView(APIView):
-    def get_object(self, pk):
-        try:
-            return User.objects.get(pk=pk)
-        except User.DoesNotExist:
-            return None
 
-    def get(self, request, pk, format=None):
-        user = self.get_object(pk)
-        if user is not None:
-            serializer = UserSerializer(user)
-            return Response(serializer.data)
-        return Response(status=status.HTTP_404_NOT_FOUND)
-
-#.....
-
-```
-* PUT This is exactly the same as when creating a user except that an ID of an existing user is provided in the URL, and that the request will overwrite the user's data with that given ID.
-  ###### *users.views.py*
-
-```python
-class UserDetailView(APIView):
-    def get_object(self, pk):
-        try:
-            return User.objects.get(pk=pk)
-        except User.DoesNotExist:
-            return None
-
-    def put(self, request, pk, format=None):
-        user = self.get_object(pk)
-        if user is not None and request.user == user:
-            serializer = UserSerializer(user, data=request.data)
-            if serializer.is_valid():
-                serializer.save()
-                return Response(serializer.data)
-            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-        return Response({'error': 'Permission denied'}, status=status.HTTP_403_FORBIDDEN)
-
-#.....
-```
-* PATCH This is exactly the same as when updating a user except none of the fields are required, and that only fields given a value will be updated. (hint: see partial_update in serializers)
-  ###### *users.views.py*
-
-```python
-class UserDetailView(APIView):
-    def get_object(self, pk):
-        try:
-            return User.objects.get(pk=pk)
-        except User.DoesNotExist:
-            return None
-
-    def patch(self, request, pk, format=None):
-        user = self.get_object(pk)
-        if user is not None and request.user == user:
-            serializer = UserSerializer(user, data=request.data, partial=True)
-            if serializer.is_valid():
-                serializer.save()
-                return Response(serializer.data)
-            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-        return Response({'error': 'Permission denied'}, status=status.HTTP_403_FORBIDDEN)
+#### all other apps has similar tests in app.tests.test_endpoints.py
 
 
-#.....
-```
-![Alt](https://github.com/abood-74/Music-Platform-project/blob/Task-6/readme_elements/Screenshot%20from%202024-02-02%2008-16-48.png)
-
+    
 
 
