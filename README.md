@@ -1,6 +1,6 @@
 # Music-Platform-project
 
-## Task 5
+## Task 5 Django REST Framework
 
 #### 1- Feel free to remove any non-API views that we created from before and Create a class-based view at the path /artists/ that returns a list of artists in JSON format for GET requests, the artist data should include the following fields.
 {
