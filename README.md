@@ -1,4 +1,4 @@
-### Task 3
+### Task 3 Forms, Templates, and Views
 
 #### 1- Instead of having an explicit created_at field in the Album model, inherit from TimeStampedModel.
 
