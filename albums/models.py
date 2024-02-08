@@ -13,7 +13,7 @@ class Album(TimeStampedModel):
     artist = models.ForeignKey(Artist, on_delete=models.CASCADE, related_name = 'albums')
     name = models.CharField(max_length=100, default="New Album")
     release_datetime = models.DateTimeField()
-    cost = models.DecimalField(max_digits=10, decimal_places=2)
+    cost = models.DecimalField(max_digits=10, decimal_places=2, default=1000.00)
     is_approved = models.BooleanField(default=False)
     
 

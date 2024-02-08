@@ -1,11 +1,12 @@
 from rest_framework.generics import ListAPIView,ListCreateAPIView
 from .models import Artist
 from .serializers import ArtistSerializer
-
+from rest_framework.permissions import IsAuthenticated
 
 
 
 class CreateArtistView(ListCreateAPIView):
+    permission_classes = [IsAuthenticated]
     queryset = Artist.objects.all()
     serializer_class = ArtistSerializer
 
