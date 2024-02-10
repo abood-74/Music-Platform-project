@@ -46,6 +46,8 @@ INSTALLED_APPS = [
     'rest_framework',
     'django_extensions',
     'knox',
+    'rest_framework.authtoken',
+    'django_filters',
     #local
     'artists',
     'albums',
@@ -118,9 +120,19 @@ AUTH_PASSWORD_VALIDATORS = [
 ]
 
 REST_FRAMEWORK = {
-    'DEFAULT_AUTHENTICATION_CLASSES': [
-        'rest_framework.authentication.TokenAuthentication',
+    'DEFAULT_PERMISSION_CLASSES': [
+        'rest_framework.permissions.AllowAny'
     ],
+    'DEFAULT_AUTHENTICATION_CLASSES': [
+        'knox.auth.TokenAuthentication',
+    ],
+    'DEFAULT FILTER_BACKENDS': [
+        'django_filters.rest_framework.DjangoFilterBackend',
+        ],
+    'DEFAULT_PAGINATION_CLASS': 
+        'rest_framework.pagination.LimitOffsetPagination',
+         'PAGE_SIZE' : 5,
+    
 }
 
 # Internationalization
