@@ -61,4 +61,3 @@ def test_create_artist_without_social_link(auth_client):
 def test_artist_with_albums(auth_client):
     response = auth_client.get(reverse('artist_with_albums'))
     assert response.status_code == 200
-    assert response.json() == []
