@@ -6,6 +6,8 @@ from rest_framework.pagination import LimitOffsetPagination
 from artists.models import Artist
 from rest_framework import status
 from .filters import AlbumFilter
+from.tasks import send_congratulatory_email
+from users.serializers import UserSerializer
 class CreateAlbumView(APIView):
     permission_classes = [IsAuthenticated]
     
@@ -18,10 +20,12 @@ class CreateAlbumView(APIView):
         except:
             return Response("user is not registered as artist" , status=status.HTTP_403_FORBIDDEN)
         
+        user = UserSerializer(user).data
         serializer = CreateAlbumSerializer(data=data)
         
         if serializer.is_valid():
             serializer.save()
+            send_congratulatory_email.delay(user, serializer.data)
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
         

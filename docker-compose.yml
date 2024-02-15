@@ -39,7 +39,58 @@ services:
       - POSTGRES_PASSWORD:postgres
     env_file:
       - ./.env
+      
+  celery_worker:
+    build: ./
     
+    env_file:
+      - ./.env
+    
+    command: >
+      sh -c "
+        python manage.py makemigrations &&
+        python manage.py migrate &&
+        python manage.py collectstatic --noinput --clear &&
+        celery -A musicplatform worker -l info
+        "
+    networks:
+      - app-net
+    volumes:
+      - ./:/home/
+
+    depends_on:
+      - db
+      - redis
+      - api
+  
+  
+  celery_beat:
+    build: ./
+    
+    env_file:
+      - ./.env
+    
+    command: >
+      sh -c "
+        python manage.py makemigrations &&
+        python manage.py migrate &&
+        python manage.py collectstatic --noinput --clear &&
+        celery -A musicplatform beat -l info
+        "
+    networks:
+      - app-net
+    volumes:
+      - ./:/home/
+
+    depends_on:
+      - db
+      - redis
+      - api
+  redis:
+    image: redis:7.2.0
+    networks:
+      - app-net
+
 
 
 networks:
