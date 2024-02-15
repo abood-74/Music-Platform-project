@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Artists with Albums</title>
+    <!-- Include Bootstrap CSS -->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <!-- Custom CSS for additional styling -->
+    <style>
+        body {
+            background-image: url('your-background-image.jpg'); /* Replace with your background image URL */
+            background-size: cover;
+            background-repeat: no-repeat;
+            background-attachment: fixed;
+            background-color: #f8f9fa; /* Fallback background color */
+            color: #333; /* Text color */
+            font-family: Arial, sans-serif;
+        }
+        .container {
+            margin-top: 50px;
+        }
+        .card {
+            background-color: rgba(255, 255, 255, 0.9); /* Semi-transparent white background */
+            box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2);
+            border-radius: 10px;
+            padding: 20px;
+        }
+        .artist-name {
+            font-weight: bold;
+            font-size: 24px;
+            color: #007BFF; /* Artist name color */
+        }
+        .album-details {
+            margin-top: 10px;
+            list-style-type: none;
+            padding-left: 0;
+        }
+        .album-details li {
+            margin-bottom: 10px;
+        }
+        .album-details strong {
+            color: #333; /* Field label color */
+        }
+        .album-details .badge {
+            background-color: #007BFF; /* Badge background color */
+            color: white; /* Badge text color */
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="card">
+            <div class="card-header">
+                <h2 class="text-center">Artists with Albums</h2>
+            </div>
+            <div class="card-body">
+                <ul class="list-unstyled">
+                    {% for artist in artists_with_albums %}
+                        <li class="artist-name">{{ artist.stage_name }}</li>
+                        <ul class="album-details">
+                            {% for album in artist.albums.all %}
+                                <li>
+                                    <strong>Album Name:</strong> {{ album.name }}<br>
+                                    <strong>Release Date and Time:</strong> {{ album.release_datetime }}<br>
+                                    <strong>Cost:</strong> ${{ album.cost }}<br>
+                                    <strong>Is Approved:</strong>
+                                    <span class="badge">{{ album.is_approved }}</span><br>
+                                    <strong>Created:</strong> {{ album.created }}<br>
+                                    <strong>Modified:</strong> {{ album.modified }}<br>
+                                </li>
+                            {% endfor %}
+                        </ul>
+                    {% endfor %}
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <!-- Include Bootstrap JS and jQuery (optional) for Bootstrap features -->
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.3/dist/umd/popper.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+</body>
+</html>
