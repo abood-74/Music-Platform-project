@@ -38,7 +38,7 @@ class ListApprovedAlbums(APIView):
     permission_classes = [AllowAny]
     
     def get(self, request):
-        albums = Album.objects.filter(is_approved = True).select_related('artist')
+        albums = Album.approved.all().select_related('artist')
         filtered_albums = AlbumFilter(request.GET, queryset = albums)
         paginator = self.pagination_class()
         paginated_albums = paginator.paginate_queryset(filtered_albums.qs, request)

@@ -6,9 +6,14 @@ from django.db import models
 from imagekit.models import ImageSpecField
 from imagekit.processors import ResizeToFit
 
-
+class AlbumsManager(models.Manager):
+    def get_queryset(self):
+        return super().get_queryset().filter(is_approved=True)
 
 class Album(TimeStampedModel):
+    
+    objects = models.Manager()
+    approved = AlbumsManager()
     
     artist = models.ForeignKey(Artist, on_delete=models.CASCADE, related_name = 'albums')
     name = models.CharField(max_length=100, default="New Album")

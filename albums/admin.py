@@ -8,6 +8,9 @@ class AlbumAdmin(admin.ModelAdmin):
     form = AlbumForm
     # Define fields that should be read-only in the admin
     readonly_fields = ('created','modified')
+    search_fields = ('name',)
+    list_filter = ('is_approved', 'release_datetime')
+    date_hierarchy = 'release_datetime'
     
 admin.site.register(Album, AlbumAdmin)
 admin.site.register(Song)
