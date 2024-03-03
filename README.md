@@ -7,13 +7,14 @@ Music Platform  is a Django-based backend project for a music platform. This pro
 
 ### Instructions
 1. Clone the repository:
-   ```bash
-   git clone https://github.com/abood-74/Music-Platform-project
-
+```bash
+git clone https://github.com/abood-74/Music-Platform-project
+```
 2.Navigate to the project directory
 ```bash
-   cd Music-Platform-project
+cd Music-Platform-project
+```
 3.Start the Docker Compose services
 ```bash
-   docker-compose up -d
-
+docker-compose up -d
+```
